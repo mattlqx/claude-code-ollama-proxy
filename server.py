@@ -20,7 +20,7 @@ load_dotenv()
 
 # Configure logging
 logging.basicConfig(
-    level=logging.WARN,  # Change to INFO level to show more details
+    level=logging.INFO,  # Temporarily changed to DEBUG for troubleshooting
     format='%(asctime)s - %(levelname)s - %(message)s',
 )
 logger = logging.getLogger(__name__)
@@ -85,25 +85,32 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 # Get preferred provider (default to openai)
 PREFERRED_PROVIDER = os.environ.get("PREFERRED_PROVIDER", "openai").lower()
 
+# Get Ollama endpoint if available
+OLLAMA_API_BASE = os.environ.get("OLLAMA_API_BASE", "http://localhost:11434")
+
 # Get model mapping configuration from environment
 # Default to latest OpenAI models if not set
-BIG_MODEL = os.environ.get("BIG_MODEL", "gpt-4.1")
-SMALL_MODEL = os.environ.get("SMALL_MODEL", "gpt-4.1-mini")
+BIG_MODEL = os.environ.get("BIG_MODEL", "o3-mini")
+SMALL_MODEL = os.environ.get("SMALL_MODEL", "o3-mini")
 
 # List of OpenAI models
 OPENAI_MODELS = [
-    "o3-mini",
+    "gpt-4",
+    "gpt-4-32k",
+    "gpt-4.1",
+    "gpt-4.1-mini",
+    "gpt-4o",
+    "gpt-4o-mini",
+    "gpt-4o-audio-preview",
+    "gpt-4o-mini-audio-preview",
+    "gpt-4.5-preview",
+    "chatgpt-4o-latest",
+    "gpt-3.5-turbo",
+    "gpt-3.5-turbo-16k",
     "o1",
     "o1-mini",
     "o1-pro",
-    "gpt-4.5-preview",
-    "gpt-4o",
-    "gpt-4o-audio-preview",
-    "chatgpt-4o-latest",
-    "gpt-4o-mini",
-    "gpt-4o-mini-audio-preview",
-    "gpt-4.1",  # Added default big model
-    "gpt-4.1-mini" # Added default small model
+    "o3-mini"
 ]
 
 # List of Gemini models
@@ -111,6 +118,22 @@ GEMINI_MODELS = [
     "gemini-2.5-pro-preview-03-25",
     "gemini-2.0-flash"
 ]
+
+OLLAMA_MODELS = [
+    "llama3",
+    "llama3.1",
+    "llama3:8b",
+    "llama3:70b",
+    "codellama:34b-instruct",
+    "llama2",
+    "mistral",
+    "mistral:instruct",
+    "mixtral",
+    "mixtral:instruct",
+    "phi3:mini",
+    "phi3:medium"
+]
+# List of Ollama models
 
 # Helper function to clean schema for Gemini
 def clean_gemini_schema(schema: Any) -> Any:
@@ -202,12 +225,17 @@ class MessagesRequest(BaseModel):
             clean_v = clean_v[7:]
         elif clean_v.startswith('gemini/'):
             clean_v = clean_v[7:]
+        elif clean_v.startswith('ollama/'):
+            clean_v = clean_v[7:]
 
         # --- Mapping Logic --- START ---
         mapped = False
         # Map Haiku to SMALL_MODEL based on provider preference
         if 'haiku' in clean_v.lower():
-            if PREFERRED_PROVIDER == "google" and SMALL_MODEL in GEMINI_MODELS:
+            if PREFERRED_PROVIDER == "ollama" and SMALL_MODEL in OLLAMA_MODELS:
+                new_model = f"ollama/{SMALL_MODEL}"
+                mapped = True
+            elif PREFERRED_PROVIDER == "google" and SMALL_MODEL in GEMINI_MODELS:
                 new_model = f"gemini/{SMALL_MODEL}"
                 mapped = True
             else:
@@ -216,7 +244,10 @@ class MessagesRequest(BaseModel):
 
         # Map Sonnet to BIG_MODEL based on provider preference
         elif 'sonnet' in clean_v.lower():
-            if PREFERRED_PROVIDER == "google" and BIG_MODEL in GEMINI_MODELS:
+            if PREFERRED_PROVIDER == "ollama" and BIG_MODEL in OLLAMA_MODELS:
+                new_model = f"ollama/{BIG_MODEL}"
+                mapped = True
+            elif PREFERRED_PROVIDER == "google" and BIG_MODEL in GEMINI_MODELS:
                 new_model = f"gemini/{BIG_MODEL}"
                 mapped = True
             else:
@@ -225,7 +256,10 @@ class MessagesRequest(BaseModel):
 
         # Add prefixes to non-mapped models if they match known lists
         elif not mapped:
-            if clean_v in GEMINI_MODELS and not v.startswith('gemini/'):
+            if clean_v in OLLAMA_MODELS and not v.startswith('ollama/'):
+                new_model = f"ollama/{clean_v}"
+                mapped = True # Technically mapped to add prefix
+            elif clean_v in GEMINI_MODELS and not v.startswith('gemini/'):
                 new_model = f"gemini/{clean_v}"
                 mapped = True # Technically mapped to add prefix
             elif clean_v in OPENAI_MODELS and not v.startswith('openai/'):
@@ -275,12 +309,17 @@ class TokenCountRequest(BaseModel):
             clean_v = clean_v[7:]
         elif clean_v.startswith('gemini/'):
             clean_v = clean_v[7:]
+        elif clean_v.startswith('ollama/'):
+            clean_v = clean_v[7:]
 
         # --- Mapping Logic --- START ---
         mapped = False
         # Map Haiku to SMALL_MODEL based on provider preference
         if 'haiku' in clean_v.lower():
-            if PREFERRED_PROVIDER == "google" and SMALL_MODEL in GEMINI_MODELS:
+            if PREFERRED_PROVIDER == "ollama" and SMALL_MODEL in OLLAMA_MODELS:
+                new_model = f"ollama/{SMALL_MODEL}"
+                mapped = True
+            elif PREFERRED_PROVIDER == "google" and SMALL_MODEL in GEMINI_MODELS:
                 new_model = f"gemini/{SMALL_MODEL}"
                 mapped = True
             else:
@@ -289,7 +328,10 @@ class TokenCountRequest(BaseModel):
 
         # Map Sonnet to BIG_MODEL based on provider preference
         elif 'sonnet' in clean_v.lower():
-            if PREFERRED_PROVIDER == "google" and BIG_MODEL in GEMINI_MODELS:
+            if PREFERRED_PROVIDER == "ollama" and BIG_MODEL in OLLAMA_MODELS:
+                new_model = f"ollama/{BIG_MODEL}"
+                mapped = True
+            elif PREFERRED_PROVIDER == "google" and BIG_MODEL in GEMINI_MODELS:
                 new_model = f"gemini/{BIG_MODEL}"
                 mapped = True
             else:
@@ -298,7 +340,10 @@ class TokenCountRequest(BaseModel):
 
         # Add prefixes to non-mapped models if they match known lists
         elif not mapped:
-            if clean_v in GEMINI_MODELS and not v.startswith('gemini/'):
+            if clean_v in OLLAMA_MODELS and not v.startswith('ollama/'):
+                new_model = f"ollama/{clean_v}"
+                mapped = True # Technically mapped to add prefix
+            elif clean_v in GEMINI_MODELS and not v.startswith('gemini/'):
                 new_model = f"gemini/{clean_v}"
                 mapped = True # Technically mapped to add prefix
             elif clean_v in OPENAI_MODELS and not v.startswith('openai/'):
@@ -545,7 +590,8 @@ def convert_anthropic_to_litellm(anthropic_request: MessagesRequest) -> Dict[str
         "temperature": anthropic_request.temperature,
         "stream": anthropic_request.stream,
     }
-    
+
+
     # Add optional parameters if present
     if anthropic_request.stop_sequences:
         litellm_request["stop"] = anthropic_request.stop_sequences
@@ -1110,6 +1156,10 @@ async def create_message(
         elif request.model.startswith("gemini/"):
             litellm_request["api_key"] = GEMINI_API_KEY
             logger.debug(f"Using Gemini API key for model: {request.model}")
+        elif request.model.startswith("ollama/"):
+            # Ollama doesn't require an API key, but we need to set the API base
+            litellm_request["api_base"] = OLLAMA_API_BASE
+            logger.debug(f"Using Ollama endpoint for model: {request.model} at {OLLAMA_API_BASE}")
         else:
             litellm_request["api_key"] = ANTHROPIC_API_KEY
             logger.debug(f"Using Anthropic API key for model: {request.model}")
@@ -1295,8 +1345,7 @@ async def create_message(
             
             # Convert LiteLLM response to Anthropic format
             anthropic_response = convert_litellm_to_anthropic(litellm_response, request)
-            
-            return anthropic_response
+            return JSONResponse(content={"response": anthropic_response.content[0].text if anthropic_response.content else ""})
                 
     except Exception as e:
         import traceback
