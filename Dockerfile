@@ -4,7 +4,8 @@ RUN apk add --no-cache \
     python3 \
     py3-pip \
     curl \
-    rust
+    rust \
+    cargo
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 COPY . /app
 WORKDIR /app
