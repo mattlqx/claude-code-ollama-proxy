@@ -3,7 +3,8 @@ FROM alpine:latest
 RUN apk add --no-cache \
     python3 \
     py3-pip \
-    curl
+    curl \
+    rust
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 COPY . /app
 WORKDIR /app
