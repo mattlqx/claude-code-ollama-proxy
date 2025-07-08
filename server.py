@@ -28,9 +28,9 @@ logger = logging.getLogger(__name__)
 # Configure uvicorn to be quieter
 import uvicorn
 # Tell uvicorn's loggers to be quiet
-logging.getLogger("uvicorn").setLevel(logging.WARNING)
-logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
-logging.getLogger("uvicorn.error").setLevel(logging.WARNING)
+logging.getLogger("uvicorn").setLevel(logging.INFO)
+logging.getLogger("uvicorn.access").setLevel(logging.INFO)
+logging.getLogger("uvicorn.error").setLevel(logging.INFO)
 
 # Create a filter to block any log messages containing specific strings
 class MessageFilter(logging.Filter):
