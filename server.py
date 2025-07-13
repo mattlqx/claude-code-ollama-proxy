@@ -120,22 +120,24 @@ GEMINI_MODELS = [
 ]
 
 OLLAMA_MODELS = [
-    "llama4",
-    "llama4:maverick",
-    "llama4:scout",
-    "llama3",
-    "llama3.1",
-    "llama3:8b",
-    "llama3:70b",
     "codellama:34b-instruct",
     "devstral:latest",
     "llama2",
-    "mistral",
+    "llama3:70b",
+    "llama3:8b",
+    "llama3.1",
+    "llama3",
+    "llama4:maverick",
+    "llama4:scout",
+    "llama4",
     "mistral:instruct",
-    "mixtral",
+    "mistral",
     "mixtral:instruct",
+    "mixtral",
+    "phi3:medium",
     "phi3:mini",
-    "phi3:medium"
+    "phi4-reasoning:latest",
+    "qwen3:32b",
 ]
 # List of Ollama models
 
