@@ -128,7 +128,7 @@ OLLAMA_MODELS = [
     "llama3:8b",
     "llama3:70b",
     "codellama:34b-instruct",
-    "devistral:latest",
+    "devstral:latest",
     "llama2",
     "mistral",
     "mistral:instruct",
